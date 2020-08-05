@@ -1,0 +1,26 @@
+---
+- hosts: 127.0.0.1
+  become: true
+  connection: local
+  tasks:  
+  - name: Install apache
+    apt: name=apache2  update_cache=yes state=present
+  - name : start apache
+    service: name=apache2 state=started
+  - name: Install php and other dependencies
+    apt: name="{{ packages }}" state=present
+    vars:
+      packages:
+      - php
+      - libapache2-mod-php
+      - php-curl
+      - php-gd
+      - php-xml
+      - php-mbstring
+      - php-common
+      - php-xmlrpc
+      - php-mysql
+      - php-zip
+      - php-soap
+      - php-intl
+
