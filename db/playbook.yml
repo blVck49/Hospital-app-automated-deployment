@@ -1,0 +1,35 @@
+# Database
+---
+- hosts: 127.0.0.1
+  connection: local
+  become: true
+  tasks:
+  - name: Update apt cache
+    apt: update_cache=yes cache_valid_time=3600
+
+  - name: Install required software
+    apt: name="{{ packages }}" state=present
+    vars:
+      packages:
+      - python-mysqldb
+      - mysql-server
+      - php-mysql
+  
+  - name: Create a new database with name Hospital_db
+    mysql_db:
+      name: Hospital_db
+      state: present
+  - name: Create db user
+    mysql_user:
+      name: "{{ mysql_user }}"
+      password: "{{ mysql_password }}"
+      priv: '*.*:ALL'
+      state: present
+  - name: import website database
+    mysql_db: 
+      name: Hospital_db
+      login_user: "{{ mysql_user }}"
+      login_password: "{{ mysql_password }}" 
+      target: /usr/local/hospital.sql
+      state: import
+
