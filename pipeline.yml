@@ -1,0 +1,59 @@
+pool:
+  name: Azure Pipelines
+steps:
+- task: CopyFiles@2
+  displayName: 'copy db files'
+  inputs:
+    SourceFolder: db
+    TargetFolder: '$(System.DefaultWorkingDirectory)'
+
+- task: PackerBuild@1
+  displayName: 'Build db image'
+  inputs:
+    templateType: custom
+    customTemplateLocation: '$(System.DefaultWorkingDirectory)/packer.json'
+    packerVersion: 1.4.3
+
+- task: CopyFiles@2
+  displayName: 'Copy web files'
+  inputs:
+    SourceFolder: web
+    TargetFolder: '$(System.DefaultWorkingDirectory)'
+    OverWrite: true
+  continueOnError: true
+
+- task: PackerBuild@1
+  displayName: 'Build web image'
+  inputs:
+    templateType: custom
+    customTemplateLocation: '$(System.DefaultWorkingDirectory)/webimage.json'
+    packerVersion: 1.4.3
+
+- task: CopyFiles@2
+  displayName: 'Copy Terraform files'
+  inputs:
+    SourceFolder: Terraform
+    TargetFolder: '$(System.DefaultWorkingDirectory)'
+    OverWrite: true
+
+- task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV1@0
+  displayName: 'Terraform : Init'
+  inputs:
+    backendServiceArm: ''
+    backendAzureRmResourceGroupName: ''
+    backendAzureRmStorageAccountName: 
+    backendAzureRmContainerName: 
+    backendAzureRmKey: ''
+
+- task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV1@0
+  displayName: 'Terraform : Apply'
+  inputs:
+    command: apply
+    environmentServiceNameAzureRM: ''
+
+- task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV1@0
+  displayName: 'Terraform : Destroy'
+  inputs:
+    command: destroy
+    environmentServiceNameAzureRM: ''
+  enabled: false
